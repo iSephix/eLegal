@@ -44,6 +44,10 @@ function submitData() {
   const revenue = document.getElementById('revenue').value;
   const useOfAi = document.getElementById('useofai').value;
 
+  const companyData = { company, industry, revenue, useOfAi };
+
+  localStorage.setItem('CompanyBasedata', JSON.stringify(companyData));
+
   fetch('https://aiact.vercel.app//api/sendData', {
     method: 'POST',
     headers: {
