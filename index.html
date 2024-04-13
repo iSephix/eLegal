@@ -52,24 +52,9 @@ function submitData() {
 
   // Store data in localStorage
   localStorage.setItem('CompanyBasedata', JSON.stringify(companyData));
-
-  fetch('https://api.example.com/sendData', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(companyData),
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-    window.location.href = 'https://aiact.vercel.app/modules.html'; 
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    button.textContent = 'Check Applicability'; 
-    button.disabled = false;
-  });
+  
+  window.location.href = 'https://aiact.vercel.app/modules.html'; 
+  
 }
 
 </script>
