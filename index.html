@@ -1,50 +1,62 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>eLegal Submission - AI Act Tool</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body, h1, h2, h3, h4, h5, h6 { font-family: 'Inter', sans-serif; --font-sans: 'Inter'; }
-  </style>
+<script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Act Navigator</title>
+<style>
+  .bg-custom { background-color: #f3d6f9; }
+  .header { background-color: #bd1e59; color: white; text-align: center; padding: 10px; border-radius: 10px 10px 0 0; }
+  .section { background-color: #e2a8e4; padding: 10px; border-radius: 10px; margin-top: 10px; }
+  .highlight { outline: 2px solid #4949ffff; }
+  .button { background-color: #bd1e59; color: white; width: 100%; padding: 15px; border-radius: 10px; cursor: pointer; }
+</style>
 </head>
 <body>
-  <div class="px-4 pb-20 md:px-6">
-    <div class="space-y-4">
-      <div class="space-y-1">
-        <h1 class="text-3xl font-bold">AI Act Tool</h1>
-        <p class="text-gray-500 dark:text-gray-400">
-          Answer the following questions to find out how you can use AI safely and legally.
-        </p>
-      </div>
-      <div class="space-y-6">
-        <div class="space-y-4">
-          <div class="space-y-2">
-            <h2 class="text-xl font-semibold">Question 1: What tasks do you want to tackle with AI?</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Choose the tasks that speak to your soul.</p>
-          </div>
-          <div class="space-y-2">
-            <div class="flex flex-row">
-              <div class="flex items-center gap-2 mr-5 hover:bg-blue-300">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="red">Invoicing</label>
-              </div>
-              <div class="flex items-center gap-2 mr-5 hover:bg-blue-300">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="blue">Automated Offer creation</label>
-              </div>
-              <div class="flex items-center gap-2 mr-5 hover:bg-blue-300">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="green">Customer Service</label>
-              </div>
-              <div class="flex items-center gap-2 hover:bg-blue-300">
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="purple">Automated Billing</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
-          <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-500 text-white hover:bg-blue-700 h-10 px-4 py-2">
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
+<div class="bg-custom" style="padding: 20px; width: 450px; border-radius: 10px;">
+  <div class="header">AI ACT NAVIGATOR</div>
+  <div class="section">
+    <label for="company" class="font-semibold text-sm">Company</label>
+    <input id="company" type="text" value="Stadtwerke Bad Aibling" class="highlight">
   </div>
+  <div class="section">
+    <label for="industry" class="font-semibold text-sm">Industry</label>
+    <input id="industry" type="text" value="Electricity Provider" class="highlight">
+  </div>
+  <div class="section">
+    <label for="revenue" class="font-semibold text-sm">Revenue p.a.</label>
+    <input id="revenue" type="text" value="5000000" class="highlight">
+  </div>
+  <div class="section">
+    <span class="font-semibold text-sm">Use of AI</span>
+    <span class="text-sm">
+      Wants to use AI to obtain more information about grid overload. The company wants to use artificial
+      intelligence to monitor and control the emerging energy network (e.g. smart components) in order to know
+      when which energy peaks occur and to be able to react to these peaks accordingly.
+    </span>
+  </div>
+  <div class="section" style="margin-top: 20px;">
+    <button class="button" onclick="submitData()">Check Applicability</button>
+  </div>
+</div>
+<script>
+function submitData() {
+  const company = document.getElementById('company').value;
+  const industry = document.getElementById('industry').value;
+  const revenue = document.getElementById('revenue').value;
+
+  fetch('https://api.vercel.app/sendData', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ company, industry, revenue }),
+  })
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error('Error:', error));
+}
+</script>
 </body>
 </html>
