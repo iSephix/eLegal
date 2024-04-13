@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compliance Modules</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .arrow-button {
+      position: relative;
+      background-color: #6b46c1; /* Purple-600 */
+      color: white;
+      padding: 8px 24px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .arrow-button::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 20px;
+      height: 20px;
+      background-color: #6b46c1;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+      transform: translateY(-50%);
+    }
+  </style>
 </head>
 <body class="bg-pink-200">
    <div style="width: 90%;" class="mx-auto p-5">
@@ -44,7 +68,7 @@
       </div>
     </div>
     <div class="mt-4 text-xs">
-      <a href="https://aiact.vercel.app"><button id="backToCompanyData" class="bg-purple-600 text-white p-2 rounded-lg">Company Data</button></a>
+      <a href="https://aiact.vercel.app"><button id="backToCompanyData" class="arrow-button">Company Data</button></a>
     </div>
   </div>
 
