@@ -39,6 +39,10 @@
 </div>
 <script>
 function submitData() {
+  const button = document.querySelector('.button');
+  button.textContent = 'Processing...'; 
+  button.disabled = true;
+
   const company = document.getElementById('company').value;
   const industry = document.getElementById('industry').value;
   const revenue = document.getElementById('revenue').value;
@@ -46,19 +50,28 @@ function submitData() {
 
   const companyData = { company, industry, revenue, useOfAi };
 
+  // Store data in localStorage
   localStorage.setItem('CompanyBasedata', JSON.stringify(companyData));
 
-  fetch('https://aiact.vercel.app//api/sendData', {
+  fetch('https://api.example.com/sendData', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ company, industry, revenue, useOfAi }),
+    body: JSON.stringify(companyData),
   })
   .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));
+  .then(data => {
+    console.log(data);
+    window.location.href = 'https://aiact.vercel.app/modules.html'; 
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    button.textContent = 'Check Applicability'; 
+    button.disabled = false;
+  });
 }
+
 </script>
 </body>
 </html>
