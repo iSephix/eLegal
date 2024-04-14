@@ -5,5 +5,15 @@
       "src": "/api/*.js",
       "use": "@now/node"
     }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1.html"
+    }
   ]
 }
