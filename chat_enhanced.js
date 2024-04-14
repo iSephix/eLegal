@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: systemPrompt + message }),
+        body: JSON.stringify({ prompt: systemPrompt, message: message }),
       })
       .then(response => response.json())
       .then(data => {
