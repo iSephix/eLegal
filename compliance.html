@@ -11,13 +11,8 @@
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
 <div class="container mx-auto my-8 p-8 bg-white rounded-xl shadow-lg max-w-md">
     <h2 class="text-2xl font-bold mb-2 text-gray-800">Compliance Check</h2>
-    <div class="mb-4">
-        <p class="text-gray-700">Submitted Company and Use Case Data:</p>
-        <ul class="list-disc list-inside">
-            <li>Company</li>
-            <li>Industry</li>
-            <li>Use of AI</li>
-        </ul>
+    <div class="mb-4" id="baseData">
+        <!-- Base data will be loaded here -->
     </div>
     <button id="checkCompliance" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Check my Compliance
@@ -51,6 +46,28 @@
     </div>
 </div>
 <script>
+    function preloadData() {
+        const baseDataString = localStorage.getItem('CompanyBasedata');
+        if (baseDataString) {
+            const baseData = JSON.parse(baseDataString);
+            document.getElementById('baseData').innerHTML = `
+                <p class="text-gray-700">Submitted Company and Use Case Data:</p>
+                <ul class="list-disc list-inside">
+                    <li>Company: ${baseData.company}</li>
+                    <li>Industry: ${baseData.industry}</li>
+                    <li>Use of AI: ${baseData.useOfAi}</li>
+                    <li>Annual Revenue: ${baseData.revenue}</li>
+                </ul>
+            `;
+        } else {
+            document.getElementById('baseData').innerHTML = `
+                <p class="text-gray-700">No company data available.</p>
+            `;
+        }
+    }
+    preloadData();
+
+
     document.getElementById('checkCompliance').addEventListener('click', () => {
         fetchRiskClassificationAndMeasures();
     });
