@@ -11,12 +11,12 @@ module.exports = async (req, res) => {
 
     try {
         // Create a new thread
-        const threadResponse = await openai.createThread({ assistant_id: 'your-assistant-id' });
+        const threadResponse = await openai.createThread({ assistant_id: asst_7F2kiEd6b0ykX9iPwYXmxYW3' });
         const threadId = threadResponse.data.id;
 
         // Start streaming
         const stream = openai.beta.threads.runs.stream(threadId, {
-            assistant_id: 'your-assistant-id'
+            assistant_id: 'asst_7F2kiEd6b0ykX9iPwYXmxYW3'
         });
 
         stream.on('data', (data) => {
