@@ -7,7 +7,8 @@ export default async function handler(req, res) {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+               "OpenAI-Beta": "assistants=v1"
             },
             body: JSON.stringify({
                 assistant_id: "asst_7F2kiEd6b0ykX9iPwYXmxYW3"
