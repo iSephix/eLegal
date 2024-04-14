@@ -1,61 +1,76 @@
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { prompt } = req.body;
-        const apiKey = process.env.OPENAI_API_KEY; 
+        const apiKey = process.env.OPENAI_API_KEY;
+        const betaHeader = "assistants=v1";
 
-        const threadResponse = await fetch("https://api.openai.com/v1/threads", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-               "OpenAI-Beta": "assistants=v1"
-            },
-            body: JSON.stringify({
-                assistant_id: "asst_7F2kiEd6b0ykX9iPwYXmxYW3"
-            })
-        });
+        try {
+            const threadResponse = await fetch("https://api.openai.com/v1/threads", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "OpenAI-Beta": betaHeader
+                }
+            });
 
-        const threadData = await threadResponse.json();
-        const threadId = threadData.id; // Extracting thread ID from response
-
-        // Send user's message to the thread
-        await fetch(`https://api.openai.com/v1/messages`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                thread_id: threadId,
-                role: "user",
-                content: prompt
-            })
-        });
-
-        await fetch(`https://api.openai.com/v1/runs`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                thread_id: threadId,
-                assistant_id: "asst_7F2kiEd6b0ykX9iPwYXmxYW3"
-            })
-        });
-
-        const messagesResponse = await fetch(`https://api.openai.com/v1/messages?thread_id=${threadId}`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`
+            const threadData = await threadResponse.json();
+            if (!threadData || !threadData.id) {
+                throw new Error("Failed to create thread.");
             }
-        });
+            const threadId = threadData.id;
 
-        const messagesData = await messagesResponse.json();
-        const lastMessage = messagesData.data[messagesData.data.length - 1].content; // Assuming the last message is what you want to send back
+            const messageResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "OpenAI-Beta": betaHeader
+                },
+                body: JSON.stringify({
+                    role: "user",
+                    content: prompt
+                })
+            });
 
-        res.status(200).json({ response: lastMessage });
+            await messageResponse.json(); 
+            
+            const runResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "OpenAI-Beta": betaHeader
+                },
+                body: JSON.stringify({
+                    assistant_id: "asst_7F2kiEd6b0ykX9iPwYXmxYW3",
+                    instructions: "Please address the user politely and efficiently."
+                })
+            });
+
+            await runResponse.json();
+
+            const messagesResponse = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "OpenAI-Beta": betaHeader
+                }
+            });
+
+            const messagesData = await messagesResponse.json();
+            if (!messagesData || !messagesData.data || messagesData.data.length === 0) {
+                throw new Error("No messages found in the thread.");
+            }
+            const lastMessage = messagesData.data[messagesData.data.length - 1].content; 
+
+            res.status(200).json({ response: lastMessage });
+        } catch (error) {
+            console.error('Error processing your request:', error);
+            res.status(500).json({ error: 'Error processing your request', details: error.message });
+        }
     } else {
+        // Handle any non-POST requests
         res.setHeader('Allow', ['POST']);
         res.status(405).end(`Method ${req.method} Not Allowed`);
     }
