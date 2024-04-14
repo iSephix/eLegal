@@ -14,7 +14,10 @@ module.exports = async (req, res) => {
         // Create a new thread associated with an assistant
         const threadResponse = await openai.beta.threads.create({
             assistant_id: 'asst_7F2kiEd6b0ykX9iPwYXmxYW3', // Ensure the Assistant ID is correct
-            messages: [{ role: "system", content: "Initial thread creation." }]
+            messages: [{
+                role: "system",
+                content: "Initial thread creation."
+            }]
         });
 
         // Ensure thread creation was successful
