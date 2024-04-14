@@ -1,5 +1,27 @@
 {
   "version": 2,
-  "builds": [{ "src": "/api/**/*.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/api/stream", "dest": "/api/stream.js" }]
+  "builds": [
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/api/stream",
+      "methods": ["POST"],
+      "dest": "/api/stream.js"
+    }
+  ],
+  "statics": {
+    "public": "public"
+  }
 }
