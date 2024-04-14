@@ -38,14 +38,21 @@ document.addEventListener('DOMContentLoaded', function () {
   const conversationContainer = document.getElementById('conversation-container');
   const messageInput = document.getElementById('message-input');
   
-  // Initialize a new thread
   function initializeThread() {
-    fetch('/api/create_thread.js', { method: 'POST' })
-      .then(response => response.json())
-      .then(data => {
-        threadId = data.threadId;
-      })
-      .catch(error => console.error('Error initializing thread:', error));
+      fetch('/api/create-thread.js', { method: 'POST' })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Failed to initialize the chat thread');
+              }
+              return response.json();
+          })
+          .then(data => {
+              threadId = data.threadId;
+          })
+          .catch(error => {
+              console.error('Error initializing thread:', error);
+              appendMessage(`Initialization failed: ${error.message}`, 'ai');
+          });
   }
 
   // Append messages to the chat container
