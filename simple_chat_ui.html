@@ -1,74 +1,182 @@
-
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Chat UI</title>
+
+<title>Enhanced Chat UI with OpenAI</title>
+
 <style>
+
   body {
+
     font-family: Arial, sans-serif;
+
     background-color: #f4f4f4;
+
     margin: 0;
+
     padding: 20px;
+
     display: flex;
+
     flex-direction: column;
+
     height: 100vh;
+
   }
+
   #conversation-window {
+
     flex-grow: 1;
+
     overflow-y: auto;
+
     border: 1px solid #ccc;
+
     background-color: white;
+
     padding: 10px;
+
     margin-bottom: 10px;
+
   }
+
+  .user-message, .ai-message {
+
+    padding: 5px 10px;
+
+    border-radius: 10px;
+
+    margin: 5px 0;
+
+    display: inline-block;
+
+    max-width: 80%;
+
+  }
+
+  .user-message {
+
+    background-color: #dbf4ff;
+
+    align-self: flex-end;
+
+  }
+
+  .ai-message {
+
+    background-color: #eeeeee;
+
+    align-self: flex-start;
+
+  }
+
   #user-input {
+
     margin: 10px 0;
+
   }
+
   #send-button {
+
     padding: 10px 20px;
+
   }
+
   #language-buttons {
+
     display: flex;
+
     justify-content: space-between;
+
     margin-bottom: 10px;
+
   }
+
   .language-button {
+
     padding: 10px 20px;
+
     margin-right: 5px;
-    background-color: #eee;
-    border: 1px solid #ddd;
+
+    background-color: #2247c6;
+
+    color: white;
+
+    border: none;
+
     cursor: pointer;
+
   }
+
+  .language-button.active {
+
+    background-color: #1a3a8c;
+
+  }
+
   .language-button:last-child {
+
     margin-right: 0;
+
   }
+
   #redirect-button {
+
     position: fixed;
+
     left: 20px;
+
     bottom: 20px;
+
     padding: 10px 20px;
-    background-color: #eee;
-    border: 1px solid #ddd;
+
+    background-color: #2247c6;
+
+    color: white;
+
+    border: none;
+
     cursor: pointer;
+
   }
+
 </style>
+
 </head>
+
 <body>
 
-<div id="conversation-window"></div>
+
+
+<div id="conversation-window" class="conversation-area"></div>
+
+
 
 <div id="language-buttons">
+
   <button class="language-button" id="legal-language">Juristendeutsch</button>
   <button class="language-button" id="layman-language">Laiendeutsch</button>
+
 </div>
 
+
+
 <input type="text" id="user-input" placeholder="Type a message...">
+
 <button id="send-button">Send</button>
 
-<button id="redirect-button">Modules</button>
 
-<script src="chat.js"></script>
+<button id="redirect-button">Back to Modules</button>
+
+
+<script src="chat_enhanced.js"></script>
+
 </body>
+
 </html>
