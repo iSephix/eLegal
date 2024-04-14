@@ -1,11 +1,7 @@
 {
-    "name": "vercel-openai-integration",
+    "name": "AI Act Tool - Submission",
     "version": "1.0.0",
-    "description": "Serverless functions for Vercel to interact with OpenAI API.",
-    "scripts": {
-        "start": "vercel dev",
-        "deploy": "vercel --prod"
-    },
+    "description": "AI Act Tool",
     "dependencies": {
         "node-fetch": "^2.6.1"
     }
