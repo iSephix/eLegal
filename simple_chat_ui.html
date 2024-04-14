@@ -107,7 +107,7 @@
     }
 
     function sendMessage(message) {
-      fetch('/api/chat', {
+      fetch('/api/chat.js', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
