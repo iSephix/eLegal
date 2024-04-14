@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
       sendButton.disabled = true;
       // TODO: Call OpenAI API and handle the response
       // This is where the serverless function will be called. It should be set up in Vercel.
-      fetch('/api/openai', {
+      fetch('/api/openai.js', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
