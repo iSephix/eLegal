@@ -10,17 +10,6 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/api/stream",
-      "methods": ["POST"],
-      "dest": "/api/stream.js"
-    }
-  ],
   "statics": {
     "public": "public"
   }
