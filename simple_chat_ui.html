@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Chat UI</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  #conversation-window {
+    flex-grow: 1;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    background-color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  #user-input {
+    margin: 10px 0;
+  }
+  #send-button {
+    padding: 10px 20px;
+  }
+  #language-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .language-button {
+    padding: 10px 20px;
+    margin-right: 5px;
+    background-color: #eee;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+  .language-button:last-child {
+    margin-right: 0;
+  }
+  #redirect-button {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    padding: 10px 20px;
+    background-color: #eee;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div id="conversation-window"></div>
+
+<div id="language-buttons">
+  <button class="language-button" id="legal-language">Juristendeutsch</button>
+  <button class="language-button" id="layman-language">Laiendeutsch</button>
+</div>
+
+<input type="text" id="user-input" placeholder="Type a message...">
+<button id="send-button">Send</button>
+
+<button id="redirect-button">Modules</button>
+
+<script src="chat.js"></script>
+</body>
+</html>
