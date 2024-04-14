@@ -1,182 +1,96 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Enhanced Chat UI with OpenAI</title>
-
 <style>
-
   body {
-
     font-family: Arial, sans-serif;
-
     background-color: #f4f4f4;
-
     margin: 0;
-
     padding: 20px;
-
     display: flex;
-
     flex-direction: column;
-
     height: 100vh;
-
   }
-
-  #conversation-window {
-
+  #conversation-container {
     flex-grow: 1;
-
     overflow-y: auto;
-
     border: 1px solid #ccc;
-
     background-color: white;
-
     padding: 10px;
-
     margin-bottom: 10px;
-
   }
-
   .user-message, .ai-message {
-
     padding: 5px 10px;
-
     border-radius: 10px;
-
     margin: 5px 0;
-
     display: inline-block;
-
     max-width: 80%;
-
   }
-
   .user-message {
-
     background-color: #dbf4ff;
-
     align-self: flex-end;
-
   }
-
   .ai-message {
-
     background-color: #eeeeee;
-
     align-self: flex-start;
-
   }
-
   #user-input {
-
-    margin: 10px 0;
-
-  }
-
-  #send-button {
-
-    padding: 10px 20px;
-
-  }
-
-  #language-buttons {
-
     display: flex;
-
+    margin: 10px 0;
+  }
+  #send-button {
+    padding: 10px 20px;
+  }
+  #language-buttons {
+    display: flex;
     justify-content: space-between;
-
     margin-bottom: 10px;
-
   }
-
   .language-button {
-
     padding: 10px 20px;
-
     margin-right: 5px;
-
     background-color: #2247c6;
-
     color: white;
-
     border: none;
-
     cursor: pointer;
-
   }
-
   .language-button.active {
-
     background-color: #1a3a8c;
-
   }
-
   .language-button:last-child {
-
     margin-right: 0;
-
   }
-
   #redirect-button {
-
     position: fixed;
-
     left: 20px;
-
     bottom: 20px;
-
     padding: 10px 20px;
-
     background-color: #2247c6;
-
     color: white;
-
     border: none;
-
     cursor: pointer;
-
   }
-
 </style>
-
 </head>
-
 <body>
 
-
-
-<div id="conversation-window" class="conversation-area"></div>
-
-
+<div id="conversation-container"></div>
 
 <div id="language-buttons">
-
   <button class="language-button" id="legal-language">Juristendeutsch</button>
   <button class="language-button" id="layman-language">Laiendeutsch</button>
-
 </div>
 
-
-
-<input type="text" id="user-input" placeholder="Type a message...">
-
-<button id="send-button">Send</button>
-
+<!-- ID corrected in form and input, and button type specified -->
+<form id="message-form">
+  <input type="text" id="message-input" placeholder="Type a message...">
+  <button type="submit" id="send-button">Send</button>
+</form>
 
 <button id="redirect-button">Back to Modules</button>
-
-
-
-<!-- Add this at the end of your simple_chat_ui.html before the closing </body> tag -->
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -184,7 +98,6 @@
     const messageInput = document.getElementById('message-input');
     const conversationContainer = document.getElementById('conversation-container');
     
-    // Function to append messages to the conversation
     function appendMessage(text, isUser) {
       const messageDiv = document.createElement('div');
       messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
@@ -193,7 +106,6 @@
       conversationContainer.scrollTop = conversationContainer.scrollHeight;
     }
 
-    // Send the message to the backend and process the response
     function sendMessage(message) {
       fetch('/api/chat', {
         method: 'POST',
@@ -209,19 +121,17 @@
       });
     }
 
-    // Event listener for the message form
     messageForm.addEventListener('submit', function (event) {
       event.preventDefault();
       const message = messageInput.value.trim();
       if (message) {
         appendMessage(message, true);
         sendMessage(message);
-        messageInput.value = ''; // Clear the input
+        messageInput.value = '';
       }
     });
   });
 </script>
 
 </body>
-
 </html>
