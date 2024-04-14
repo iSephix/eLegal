@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
     if (req.method === 'POST') {
-        const { prompt } = req.body;
+        const { prompt, message } = req.body;
         const apiKey = process.env.OPENAI_API_KEY;
         const betaHeader = "assistants=v1";
 
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
                 },
                 body: JSON.stringify({
                     role: "user",
-                    content: prompt
+                    content: "Answer in prompt" + message
                 })
             });
 
