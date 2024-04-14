@@ -1,23 +1,25 @@
-const { Configuration, OpenAIApi } = require('openai');
-
+const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).end('Method Not Allowed');
     }
 
-    const configuration = new Configuration({
-        apiKey: process.env.OPENAI_API_KEY
-    });
-    const openai = new OpenAIApi(configuration);
+    const url = 'https://api.openai.com/v1/beta/threads';
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        }
+    };
 
     try {
-        const thread = await openai.beta.threads.create();
+        const response = await fetch(url, options);
+        const data = await response.json();
 
-        // Ensure thread creation was successful
-        if (thread && thread.data && thread.data.id) {
-            const threadId = thread.data.id;
-            res.status(200).json({ threadId });
+        if (response.ok && data && data.id) {
+            res.status(200).json({ threadId: data.id });
         } else {
             throw new Error('Failed to create thread');
         }
