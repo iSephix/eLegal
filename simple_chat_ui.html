@@ -5,74 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enhanced Chat UI with OpenAI</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-  #conversation-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    background-color: white;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-  .user-message, .ai-message {
-    padding: 5px 10px;
-    border-radius: 10px;
-    margin: 5px 0;
-    display: inline-block;
-    max-width: 80%;
-  }
-  .user-message {
-    background-color: #dbf4ff;
-    align-self: flex-end;
-  }
-  .ai-message {
-    background-color: #eeeeee;
-    align-self: flex-start;
-  }
-  #user-input {
-    display: flex;
-    margin: 10px 0;
-  }
-  #send-button {
-    padding: 10px 20px;
-  }
-  #language-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .language-button {
-    padding: 10px 20px;
-    margin-right: 5px;
-    background-color: #2247c6;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  .language-button.active {
-    background-color: #1a3a8c;
-  }
-  .language-button:last-child {
-    margin-right: 0;
-  }
-  #redirect-button {
-    position: fixed;
-    left: 20px;
-    bottom: 20px;
-    padding: 10px 20px;
-    background-color: #2247c6;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
+  body, html { height: 100%; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  #conversation-container { height: 80%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+  .message { padding: 8px; margin: 5px; border-radius: 8px; }
+  .user-message { background-color: #dbf4ff; color: #333; align-self: flex-end; }
+  .ai-message { background-color: #f4f4f4; color: #333; align-self: flex-start; }
+  #message-form { display: flex; margin: 10px; }
+  #message-input { flex-grow: 1; padding: 10px; width: 90%; }
+  #send-button { padding: 10px; }
 </style>
 </head>
 <body>
@@ -84,54 +24,75 @@
   <button class="language-button" id="layman-language">Laiendeutsch</button>
 </div>
 
-<!-- ID corrected in form and input, and button type specified -->
-<form id="message-form">
-  <input type="text" id="message-input" placeholder="Type a message...">
+<form id="message-form" autocomplete="off">
+  <input type="text" id="message-input" placeholder="Type a message..." aria-label="Type a message">
   <button type="submit" id="send-button">Send</button>
 </form>
 
 <button id="redirect-button">Back to Modules</button>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const messageForm = document.getElementById('message-form');
-    const messageInput = document.getElementById('message-input');
-    const conversationContainer = document.getElementById('conversation-container');
-    
-    function appendMessage(text, isUser) {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
-      messageDiv.textContent = text;
-      conversationContainer.appendChild(messageDiv);
-      conversationContainer.scrollTop = conversationContainer.scrollHeight;
-    }
+let threadId = null;
 
-    function sendMessage(message) {
-      fetch('/api/chat.js', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
-      })
+document.addEventListener('DOMContentLoaded', function () {
+  const conversationContainer = document.getElementById('conversation-container');
+  const messageInput = document.getElementById('message-input');
+  
+  // Initialize a new thread
+  function initializeThread() {
+    fetch('/api/create-thread.js', { method: 'POST' })
       .then(response => response.json())
       .then(data => {
-        appendMessage(data.ai_response, false);
+        threadId = data.threadId;
       })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+      .catch(error => console.error('Error initializing thread:', error));
+  }
+
+  // Append messages to the chat container
+  function appendMessage(text, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+    messageDiv.textContent = text;
+    conversationContainer.appendChild(messageDiv);
+    conversationContainer.scrollTop = conversationContainer.scrollHeight;
+  }
+
+  // Handle sending/receiving messages
+  function sendMessage(text) {
+    appendMessage(text, 'user');
+    if (!threadId) {
+      console.error('Thread not initialized.');
+      appendMessage('Error: Chat thread not initialized.', 'ai');
+      return;
     }
-
-    messageForm.addEventListener('submit', function (event) {
-      event.preventDefault();
-      const message = messageInput.value.trim();
-      if (message) {
-        appendMessage(message, true);
-        sendMessage(message);
-        messageInput.value = '';
-      }
+    fetch('/api/append-and-retrieve.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threadId, message: text })
+    })
+    .then(response => response.json())
+    .then(data => {
+      appendMessage(data.message, 'ai'); // Assuming 'message' exists in response
+    })
+    .catch(error => {
+      console.error('Error sending message:', error);
+      appendMessage('Failed to get AI response.', 'ai');
     });
-  });
-</script>
+  }
 
+  // Event listener for form submissions
+  document.getElementById('message-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const message = messageInput.value.trim();
+    if (message) {
+      sendMessage(message);
+      messageInput.value = '';
+    }
+  });
+
+  // Initialize chat on load
+  initializeThread();
+});
+</script>
 </body>
 </html>
