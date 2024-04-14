@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
   
   // Initialize a new thread
   function initializeThread() {
-    fetch('/api/create-thread.js', { method: 'POST' })
+    fetch('/api/create-thread', { method: 'POST' })
       .then(response => response.json())
       .then(data => {
         threadId = data.threadId;
