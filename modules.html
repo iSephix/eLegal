@@ -6,60 +6,60 @@
   <title>Compliance Modules</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-pink-200">
+<body class="bg-gray-200">
    <div style="width: 90%;" class="mx-auto p-5">
-    <h2 class="text-lg font-bold mb-4">Modules</h2>
+    <h2 class="text-lg font-bold mb-4">Our Modules</h2>
     <div class="bg-white p-4 rounded-lg shadow-md">
       <div class="grid grid-cols-4 gap-4 mb-4">
-        <div class="text-center">400+ pages new regulatory and no clue about it?</div>
-        <div class="text-center">Classify my use of AI</div>
-        <div class="text-center">Do you need written guidance for your employees?</div>
-        <div class="text-center">What if you change your AI usage?</div>
+        <div class="text-center  border border-gray-300 rounded-md p-2 text-xl">400+ pages new regulatory and no clue about it?</div>
+        <div class="text-center  border border-gray-300 rounded-md p-2 text-xl">Classify my use of AI</div>
+        <div class="text-center  border border-gray-300 rounded-md p-2 text-xl">Do you need written guidance for your employees?</div>
+        <div class="text-center  border border-gray-300 rounded-md p-2 text-xl">What if you change your AI usage?</div>
       </div>
       <div class="grid grid-cols-4 gap-4">
         <div class="flex justify-center">
-          <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6 text-blue-700 mt-5 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
         <div class="flex justify-center">
-          <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6 text-blue-700 mt-5 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
         <div class="flex justify-center">
-          <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6 text-blue-700 mt-5 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
         <div class="flex justify-center">
-          <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-6 w-6 text-blue-700 mt-5 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
-        <button id="talkToAI" class="bg-purple-600 text-white p-2 rounded-lg h-20">Talk to AI Act</button>
-        <button id="complianceCheck" class="bg-purple-600 text-white p-2 rounded-lg h-20">Compliance Check</button>
-        <button id="generateMeasures" class="bg-purple-600 text-white p-2 rounded-lg h-20">Generate Measures</button>
-        <button id="stayCompliant" class="bg-purple-600 text-white p-2 rounded-lg h-20">Stay compliant</button>
+        <button id="talkToAI" class="hover:bg-blue-700 bg-blue-500 text-white p-2 rounded-lg h-20">Talk to AI Act</button>
+        <button id="complianceCheck" class="hover:bg-blue-700 bg-blue-500 text-white p-2 rounded-lg h-20">Compliance Check</button>
+        <button id="generateMeasures" class="hover:bg-blue-700 bg-blue-500 text-white p-2 rounded-lg h-20">Generate Measures</button>
+        <button id="stayCompliant" class="hover:bg-blue-700 bg-blue-500 text-white p-2 rounded-lg h-20">Stay compliant</button>
       </div>
     </div>
     <div class="mt-4 text-xs">
-      <a href="https://aiact.vercel.app"><button id="backToCompanyData" class="bg-purple-600 text-white p-2 rounded-lg">Back to Company Data</button></a>
+      <a href="https://aiact.vercel.app"><button id="backToCompanyData" class="hover:bg-blue-300 bg-blue-500 text-white p-2 rounded-lg">Back to Company Data</button></a>
     </div>
   </div>
 
   <script>
     document.getElementById('talkToAI').addEventListener('click', function() {
-      window.location.href = 'https://aiact.vercel.app/aiactchat';
+      window.location.href = 'https://aiact.vercel.app/simple_chat_ui.html';
     });
     document.getElementById('complianceCheck').addEventListener('click', function() {
-      window.location.href = 'https://example.com/compliance';
+      window.location.href = 'https://aiact.vercel.app/compliance.html';
     });
     document.getElementById('generateMeasures').addEventListener('click', function() {
-      window.location.href = 'https://example.com/generatemeasures';
+      window.location.href = 'https://aiact.vercel.app/generatemeasures.html';
     });
     document.getElementById('stayCompliant').addEventListener('click', function() {
-      window.location.href = 'https://example.com/staycompliant';
+      window.location.href = 'https://aiact.vercel.app/staycompliant.html';
     });
   </script>
 </body>
