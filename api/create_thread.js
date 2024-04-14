@@ -11,18 +11,20 @@ module.exports = async (req, res) => {
     const openai = new OpenAIApi(configuration);
 
     try {
-        const threadResponse = await openai.createThread({
-            assistant_id: 'asst_7F2kiEd6b0ykX9iPwYXmxYW3'
+        // Create a new thread associated with an assistant
+        const threadResponse = await openai.beta.threads.create({
+            assistant_id: 'asst_7F2kiEd6b0ykX9iPwYXmxYW3', // Ensure the Assistant ID is correct
+            messages: [{ role: "system", content: "Initial thread creation." }]
         });
 
-        if (threadResponse.data && threadResponse.data.id) {
+        // Ensure thread creation was successful
+        if (threadResponse && threadResponse.data && threadResponse.data.id) {
             const threadId = threadResponse.data.id;
             res.status(200).json({ threadId });
         } else {
             throw new Error('Failed to create thread');
         }
     } catch (error) {
-        console.error('OpenAI API Error:', error); 
         res.status(500).json({ error: error.message });
     }
 };
