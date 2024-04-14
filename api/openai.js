@@ -63,6 +63,10 @@ export default async function handler(req, res) {
                 throw new Error("No messages found in the thread.");
             }
             const lastMessage = messagesData.data[messagesData.data.length - 1].content; 
+            console.log('Thread Response:', JSON.stringify(threadData, null, 2));
+console.log('Message Response:', JSON.stringify(await messageResponse.json(), null, 2));
+console.log('Run Response:', JSON.stringify(await runResponse.json(), null, 2));
+console.log('Messages Data:', JSON.stringify(messagesData, null, 2));
 
             res.status(200).json({ response: lastMessage });
         } catch (error) {
