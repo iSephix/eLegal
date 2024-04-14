@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // Ensure your API key is stored in Vercel environment variables
     const assistantId = "asst_abc123"; // Define assistant ID here or pass it through request
