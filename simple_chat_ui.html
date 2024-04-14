@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const messageInput = document.getElementById('message-input');
   
   function initializeThread() {
-      fetch('/api/create-thread.js', { method: 'POST' })
+      fetch('/api/create_thread.js', { method: 'POST' })
           .then(response => {
               if (!response.ok) {
                   throw new Error('Failed to initialize the chat thread');
