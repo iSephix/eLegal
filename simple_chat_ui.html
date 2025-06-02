@@ -6,99 +6,200 @@
 <title>Enhanced Chat UI with OpenAI</title>
 <style>
   body, html { height: 100%; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  #conversation-container { height: 80%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-  .message { padding: 8px; margin: 5px; border-radius: 8px; }
+  #conversation-container { height: 80%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column;}
+  .message { padding: 8px; margin: 5px; border-radius: 8px; max-width: 70%; word-wrap: break-word; }
   .user-message { background-color: #dbf4ff; color: #333; align-self: flex-end; }
   .ai-message { background-color: #f4f4f4; color: #333; align-self: flex-start; }
+  .ai-thinking-message { background-color: #e0e0e0; color: #555; align-self: flex-start; font-style: italic; } /* Style for AI thinking message */
   #message-form { display: flex; margin: 10px; }
-  #message-input { flex-grow: 1; padding: 10px; width: 90%; }
-  #send-button { padding: 10px; }
+  #message-input { flex-grow: 1; padding: 10px; width: 90%; border: 1px solid #ccc; border-radius: 4px; }
+  #send-button { padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  #send-button:disabled { background-color: #aaa; }
+  .language-button, #newChatButton, #redirect-button { padding: 8px 12px; margin-right: 5px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background-color: #f0f0f0; }
+  .language-button:hover, #newChatButton:hover, #redirect-button:hover { background-color: #e0e0e0; }
+
 </style>
 </head>
 <body>
 
-<div id="conversation-container"></div>
+<div id="chat-area" style="display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <div id="conversation-container"></div>
 
-<div id="language-buttons">
-  <button class="language-button" id="legal-language">Juristendeutsch</button>
-  <button class="language-button" id="layman-language">Laiendeutsch</button>
+    <div style="padding: 0 10px;">
+        <div id="language-buttons">
+          <button class="language-button" id="legal-language">Juristendeutsch</button>
+          <button class="language-button" id="layman-language">Laiendeutsch</button>
+        </div>
+    </div>
+
+    <form id="message-form" autocomplete="off">
+      <input type="text" id="message-input" placeholder="Ask me anything about the AI Act..." aria-label="Type a message">
+      <button type="submit" id="send-button">Send</button>
+    </form>
+
+    <div style="padding: 0 10px 10px 10px;">
+        <button id="newChatButton">Start New Chat</button>
+        <button id="redirect-button">Back to Modules</button>
+    </div>
 </div>
-
-<form id="message-form" autocomplete="off">
-  <input type="text" id="message-input" placeholder="Ask me anything about the AI Act..." aria-label="Type a message">
-  <button type="submit" id="send-button">Send</button>
-</form>
-
-<button id="redirect-button">Back to Modules</button>
-
+<!-- Removed duplicated buttons and mismatched form tag from here -->
 <script>
-let threadId = null;
+let currentThreadId = null; // Renamed for clarity and to match instructions
 
 document.addEventListener('DOMContentLoaded', function () {
   const conversationContainer = document.getElementById('conversation-container');
-  const messageInput = document.getElementById('message-input');
-  
-  function initializeThread() {
-      fetch('/api/create_thread.js', { method: 'POST' })
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error('Failed to initialize the chat thread');
-              }
-              return response.json();
-          })
-          .then(data => {
-              threadId = data.threadId;
-          })
-          .catch(error => {
-              console.error('Error initializing thread:', error);
-              appendMessage(`Initialization failed: ${error.message}`, 'ai');
-          });
-  }
+  const messageInput = document.getElementById('message-input'); // Corrected ID from message-form to message-input for direct access
+  const newChatButton = document.getElementById('newChatButton');
 
   // Append messages to the chat container
-  function appendMessage(text, sender) {
+  function appendMessage(text, type) { // type can be 'user', 'ai', or 'ai-thinking'
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-    messageDiv.textContent = text;
+    messageDiv.classList.add('message');
+    if (type === 'user') {
+        messageDiv.classList.add('user-message');
+    } else if (type === 'ai') {
+        messageDiv.classList.add('ai-message');
+    } else if (type === 'ai-thinking') {
+        messageDiv.classList.add('ai-thinking-message');
+        messageDiv.id = 'ai-thinking-message-id'; // To potentially remove or update it
+    }
+    
+    // Sanitize text before setting it as textContent
+    const textNode = document.createTextNode(text);
+    messageDiv.appendChild(textNode);
     conversationContainer.appendChild(messageDiv);
-    conversationContainer.scrollTop = conversationContainer.scrollHeight;
+    conversationContainer.scrollTop = conversationContainer.scrollHeight; // Auto-scroll
+  }
+  
+  async function initializeOrResumeChat() {
+    appendMessage('Initializing chat...', 'ai'); // Use 'ai' type for styling
+    const storedThreadId = localStorage.getItem('chatThreadId');
+    if (storedThreadId) {
+      currentThreadId = storedThreadId;
+      appendMessage('Resumed existing chat session.', 'ai'); 
+    } else {
+      try {
+        const response = await fetch('/api/create_thread.js', { method: 'POST' });
+        const data = await response.json(); // Always try to parse JSON
+        if (!response.ok) {
+          // Use error message from API if available, otherwise use a generic one
+          throw new Error(data.error || data.details || `HTTP error ${response.status}`);
+        }
+        if (data.threadId) {
+          currentThreadId = data.threadId;
+          localStorage.setItem('chatThreadId', currentThreadId);
+          appendMessage('New chat session started.', 'ai');
+        } else {
+          throw new Error('No threadId received from server.');
+        }
+      } catch (error) {
+        console.error('Error initializing thread:', error);
+        appendMessage(`Error starting chat: ${error.message}. Please try refreshing or starting a new chat.`, 'ai');
+        if (messageInput) messageInput.disabled = true;
+        const sendButton = document.getElementById('send-button');
+        if (sendButton) sendButton.disabled = true;
+      }
+    }
   }
 
   // Handle sending/receiving messages
-  function sendMessage(text) {
+  async function sendMessage(text) {
+    if (!text.trim()) return;
     appendMessage(text, 'user');
-    if (!threadId) {
+    
+    if (!currentThreadId) {
       console.error('Thread not initialized.');
-      appendMessage('Error: Chat thread not initialized.', 'ai');
+      appendMessage('Error: Chat thread not initialized. Please try starting a new chat.', 'ai');
       return;
     }
-    fetch('/api/append-and-retrieve.js', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ threadId, message: text })
-    })
-    .then(response => response.json())
-    .then(data => {
-      appendMessage(data.message, 'ai'); // Assuming 'message' exists in response
-    })
-    .catch(error => {
+
+    const sendButton = document.getElementById('send-button');
+    const originalButtonText = sendButton.textContent;
+    sendButton.disabled = true;
+    sendButton.textContent = 'Sending...';
+    appendMessage('AI is thinking...', 'ai-thinking'); // Add thinking message
+
+    let thinkingMessage = document.getElementById('ai-thinking-message-id');
+
+    try {
+      const response = await fetch('/api/append-and-retrieve.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threadId: currentThreadId, message: text })
+      });
+      
+      if (thinkingMessage) { // Remove "AI is thinking..." message
+          thinkingMessage.remove();
+      }
+
+      const data = await response.json(); 
+      
+      if (!response.ok) {
+        throw new Error(data.error || data.details || `HTTP error ${response.status}`);
+      }
+      
+      if (data.message) {
+        appendMessage(data.message, 'ai');
+      } else {
+        appendMessage('Received an empty or malformed response from AI.', 'ai');
+      }
+    } catch (error) {
       console.error('Error sending message:', error);
-      appendMessage('Failed to get AI response.', 'ai');
-    });
+      if (thinkingMessage) { // Ensure thinking message is removed on error too
+          thinkingMessage.remove();
+      }
+      appendMessage(`Failed to get AI response: ${error.message}. Please try again.`, 'ai');
+    } finally {
+      sendButton.disabled = false;
+      sendButton.textContent = originalButtonText;
+    }
   }
 
   // Event listener for form submissions
-  document.getElementById('message-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const message = messageInput.value.trim();
-    if (message) {
-      sendMessage(message);
-      messageInput.value = '';
-    }
-  });
+  const messageForm = document.getElementById('message-form');
+  if (messageForm) {
+    messageForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      if (messageInput && !messageInput.disabled) { // Check if not disabled
+        const message = messageInput.value.trim();
+        if (message) { // only send if message is not empty
+            sendMessage(message);
+            messageInput.value = '';
+            messageInput.focus(); // Set focus back to input field
+        }
+      }
+    });
+  }
+
+  // Event listener for "Start New Chat" button
+  if (newChatButton) {
+    newChatButton.addEventListener('click', function() {
+      appendMessage('Starting a new chat session...', 'ai'); 
+      localStorage.removeItem('chatThreadId');
+      currentThreadId = null;
+      if (conversationContainer) {
+        conversationContainer.innerHTML = ''; // Clear displayed messages
+      }
+      initializeOrResumeChat(); // This will create a new thread and update UI
+      if (messageInput) {
+          messageInput.disabled = false; // Ensure input is enabled
+          messageInput.focus();
+      }
+      const sendButton = document.getElementById('send-button');
+      if (sendButton) sendButton.disabled = false; // Ensure send button is enabled
+    });
+  }
+  
+  // Redirect button (assuming index.html is the main page)
+  const redirectButton = document.getElementById('redirect-button');
+  if (redirectButton) {
+      redirectButton.addEventListener('click', function() {
+          window.location.href = 'index.html'; // Or whatever the main page is
+      });
+  }
 
   // Initialize chat on load
-  initializeThread();
+  initializeOrResumeChat();
 });
 </script>
 </body>
