@@ -1,45 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enhanced Chat UI with OpenAI</title>
-<style>
-  body, html { height: 100%; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  #conversation-container { height: 80%; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column;}
-  .message { padding: 8px; margin: 5px; border-radius: 8px; max-width: 70%; word-wrap: break-word; }
-  .user-message { background-color: #dbf4ff; color: #333; align-self: flex-end; }
-  .ai-message { background-color: #f4f4f4; color: #333; align-self: flex-start; }
-  .ai-thinking-message { background-color: #e0e0e0; color: #555; align-self: flex-start; font-style: italic; } /* Style for AI thinking message */
-  #message-form { display: flex; margin: 10px; }
-  #message-input { flex-grow: 1; padding: 10px; width: 90%; border: 1px solid #ccc; border-radius: 4px; }
-  #send-button { padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  #send-button:disabled { background-color: #aaa; }
-  .language-button, #newChatButton, #redirect-button { padding: 8px 12px; margin-right: 5px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background-color: #f0f0f0; }
-  .language-button:hover, #newChatButton:hover, #redirect-button:hover { background-color: #e0e0e0; }
-
-</style>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700 text-gray-200 font-sans p-0 sm:p-4">
 
-<div id="chat-area" style="display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-    <div id="conversation-container"></div>
+<div id="chat-area" class="w-full max-w-2xl h-full sm:h-[calc(100vh-2rem)] sm:max-h-[800px] bg-slate-800 rounded-none sm:rounded-xl shadow-2xl flex flex-col overflow-hidden">
+    <div id="conversation-container" class="flex-grow overflow-y-auto p-4 sm:p-6 space-y-3 bg-slate-800 scroll-smooth"></div>
 
-    <div style="padding: 0 10px;">
-        <div id="language-buttons">
-          <button class="language-button" id="legal-language">Juristendeutsch</button>
-          <button class="language-button" id="layman-language">Laiendeutsch</button>
+    <div class="px-4 sm:px-6 pt-3 pb-2 border-t border-slate-700">
+        <div id="language-buttons" class="flex gap-2">
+          <button class="language-button py-2 px-3 text-sm border border-slate-600 bg-slate-700 hover:bg-slate-600 text-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-500" id="legal-language">Juristendeutsch</button>
+          <button class="language-button py-2 px-3 text-sm border border-slate-600 bg-slate-700 hover:bg-slate-600 text-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-500" id="layman-language">Laiendeutsch</button>
+          <!-- Add active state: e.g. border-blue-500 bg-blue-600 text-white -->
         </div>
     </div>
 
-    <form id="message-form" autocomplete="off">
-      <input type="text" id="message-input" placeholder="Ask me anything about the AI Act..." aria-label="Type a message">
-      <button type="submit" id="send-button">Send</button>
+    <form id="message-form" autocomplete="off" class="flex gap-3 p-4 sm:p-6 border-t border-slate-700">
+      <input type="text" id="message-input" placeholder="Ask me anything about the AI Act..." aria-label="Type a message" class="flex-grow p-3 bg-slate-700 border border-slate-600 rounded-lg text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none placeholder-gray-400">
+      <button type="submit" id="send-button" class="p-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-150 ease-in-out disabled:opacity-60 disabled:cursor-not-allowed">Send</button>
     </form>
 
-    <div style="padding: 0 10px 10px 10px;">
-        <button id="newChatButton">Start New Chat</button>
-        <button id="redirect-button">Back to Modules</button>
+    <div class="flex flex-col sm:flex-row gap-3 p-4 sm:p-6 border-t border-slate-700">
+        <button id="newChatButton" class="w-full sm:w-auto py-2 px-4 border border-slate-600 bg-slate-700 hover:bg-slate-600 text-gray-300 font-medium rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-75 transition-all duration-150 ease-in-out flex-grow sm:flex-grow-0">Start New Chat</button>
+        <button id="redirect-button" class="w-full sm:w-auto py-2 px-4 border border-slate-600 bg-slate-700 hover:bg-slate-600 text-gray-300 font-medium rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-75 transition-all duration-150 ease-in-out flex-grow sm:flex-grow-0">Back to Modules</button>
     </div>
 </div>
 <!-- Removed duplicated buttons and mismatched form tag from here -->
@@ -54,13 +41,16 @@ document.addEventListener('DOMContentLoaded', function () {
   // Append messages to the chat container
   function appendMessage(text, type) { // type can be 'user', 'ai', or 'ai-thinking'
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
+    // Base classes for all messages, p-2 for smaller padding, my-1.5 for margin y
+    messageDiv.classList.add('p-2.5', 'my-1.5', 'rounded-xl', 'max-w-[75%]', 'break-words', 'shadow');
+
     if (type === 'user') {
-        messageDiv.classList.add('user-message');
+        // Gradient background for user, larger border radius for bubble look
+        messageDiv.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white', 'self-end', 'rounded-bl-lg');
     } else if (type === 'ai') {
-        messageDiv.classList.add('ai-message');
+        messageDiv.classList.add('bg-slate-700', 'text-gray-200', 'self-start', 'rounded-br-lg');
     } else if (type === 'ai-thinking') {
-        messageDiv.classList.add('ai-thinking-message');
+        messageDiv.classList.add('bg-slate-700', 'text-gray-400', 'self-start', 'italic', 'rounded-br-lg');
         messageDiv.id = 'ai-thinking-message-id'; // To potentially remove or update it
     }
     

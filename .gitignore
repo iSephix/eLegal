@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+
+# Vercel build output
+.vercel/
+
+# Environment variables
+.env
+.env*.local
+
+# IDE/Editor specific
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Coverage directory
+coverage
+.nyc_output
+
+# Build output
+dist
+build
+out
+public
+
+# Next.js build output
+.next/
+
+# Nuxt.js build output
+.nuxt/
+
+# Gatsby build output
+.cache/
+public/
+
+# Svelte build output
+__sapper__/
+.svelte-kit/
+
+# Remix build output
+build/
+public/build/
+
+# Docusaurus build output
+.docusaurus/
+build-docs/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+*.bak
+*.orig
