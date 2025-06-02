@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "openai": "^5.0.1",
-    "uuid": "latest",
+    "uuid": "latest"
   },
   "devDependencies": {
     "jest": "^29.7.0"
