@@ -1,6 +1,5 @@
 {
   "name": "chat-app",
-  "version": "1",
   "description": "A simple chat app integrated with OpenAI using Vercel",
   "main": "index.html",
   "scripts": {
