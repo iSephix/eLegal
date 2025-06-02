@@ -7,40 +7,47 @@
 <title>Compliance Check</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-200 font-sans leading-normal tracking-normal">
-<div class="container mx-auto my-8 p-8 bg-white rounded-xl shadow-lg max-w-md">
-    <h2 class="text-2xl font-bold mb-2 text-gray-800">Compliance Check</h2>
-    <div class="mb-4" id="baseData">
-        <!-- Base data will be loaded here -->
+<body class="flex flex-col items-center justify-start min-h-screen bg-gradient-to-br from-slate-900 to-slate-700 text-gray-200 font-sans p-4 sm:p-6">
+<div class="bg-slate-800 p-6 sm:p-8 w-full max-w-2xl rounded-xl shadow-2xl space-y-6">
+    <h2 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 pb-4 text-center">Compliance Check</h2>
+    
+    <div id="baseDataContainer" class="p-4 bg-slate-700 bg-opacity-50 rounded-lg shadow">
+        <p class="text-gray-400 text-sm mb-2">Company and Use Case Data:</p>
+        <div id="baseData" class="text-sm text-gray-300 space-y-1">
+            <!-- Base data will be loaded here by JS -->
+        </div>
     </div>
-    <button id="checkCompliance" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+
+    <button id="checkCompliance" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
         Check my Compliance
     </button>
-    <div id="complianceResult" class="mt-4">
-        <div class="mb-2">
-            <label class="text-gray-700">Risk level:</label>
-            <p id="riskLevelValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
+    
+    <div id="complianceResult" class="mt-6 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-400">Risk level:</label>
+            <p id="riskLevelValue" class="p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 min-h-[2.5em] whitespace-pre-wrap">----------------------</p>
         </div>
-        <div class="mb-2">
-            <label class="text-gray-700">Reasoning:</label>
-            <p id="reasoningValue" class="border-b-2 border-gray-300 overflow-y-scroll h-24 min-h-[1.5em]">----------------------</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-400">Reasoning:</label>
+            <p id="reasoningValue" class="p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 min-h-[2.5em] h-28 overflow-y-auto whitespace-pre-wrap">----------------------</p>
         </div>
-        <div class="mb-2">
-            <label class="text-gray-700">Maximum fine:</label>
-            <p id="maxFineValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-400">Maximum fine:</label>
+            <p id="maxFineValue" class="p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 min-h-[2.5em] whitespace-pre-wrap">----------------------</p>
         </div>
-        <div class="mb-2">
-            <label class="text-gray-700">Max. fine based on annual revenue:</label>
-            <p id="maxFineRevenueValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-400">Max. fine based on annual revenue:</label>
+            <p id="maxFineRevenueValue" class="p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 min-h-[2.5em] whitespace-pre-wrap">----------------------</p>
         </div>
-        <div class="mb-2">
-            <label class="text-gray-700">Measures:</label>
-            <p id="measuresValue" class="border-b-2 border-gray-300 overflow-y-scroll h-32 min-h-[1.5em]">----------------------</p>
+        <div>
+            <label class="block text-sm font-medium text-gray-400">Measures:</label>
+            <p id="measuresValue" class="p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 min-h-[2.5em] h-36 overflow-y-auto whitespace-pre-wrap">----------------------</p>
         </div>
-        <div id="apiError" class="text-red-500 mt-2"></div> <!-- For displaying API errors -->
+        <div id="apiError" class="p-3 bg-red-700 bg-opacity-50 border border-red-700 text-red-300 rounded-md min-h-[2.5em] my-4" style="display: none;"></div> <!-- Initially hidden -->
     </div>
-    <div class="flex justify-end mt-4">
-        <button id="generateMeasures" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+    
+    <div class="mt-6 flex justify-end">
+        <button id="generateMeasures" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed">
             Generate measures
         </button>
     </div>
@@ -48,25 +55,27 @@
 <script>
     function preloadData() {
         const baseDataString = localStorage.getItem('CompanyBasedata');
+        const baseDataContainer = document.getElementById('baseData');
         if (baseDataString) {
             const baseData = JSON.parse(baseDataString);
-            document.getElementById('baseData').innerHTML = `
-                <p class="text-gray-700">Submitted Company and Use Case Data:</p>
-                <ul class="list-disc list-inside">
-                    <li>Company: ${baseData.company}</li>
-                    <li>Industry: ${baseData.industry}</li>
-                    <li>Use of AI: ${baseData.useOfAi}</li>
-                    <li>Annual Revenue: ${baseData.revenue}</li>
-                </ul>
-            `;
+            // Clear previous entries if any, then append
+            baseDataContainer.innerHTML = ''; 
+            const dataToShow = {
+                'Company': baseData.company,
+                'Industry': baseData.industry,
+                'Use of AI': baseData.useOfAi,
+                'Annual Revenue': baseData.revenue
+            };
+            for (const [key, value] of Object.entries(dataToShow)) {
+                const p = document.createElement('p');
+                p.innerHTML = `<span class="font-medium text-gray-400">${key}:</span> ${value || 'N/A'}`;
+                baseDataContainer.appendChild(p);
+            }
         } else {
-            document.getElementById('baseData').innerHTML = `
-                <p class="text-gray-700">No company data available.</p>
-            `;
+            baseDataContainer.innerHTML = `<p class="text-gray-400">No company data available. Please submit data on the homepage.</p>`;
         }
     }
     preloadData();
-
 
     document.getElementById('checkCompliance').addEventListener('click', fetchRiskClassificationAndMeasures);
     
@@ -83,7 +92,8 @@
         const measuresP = document.getElementById('measuresValue');
 
         // Clear previous results and errors
-        apiErrorDiv.textContent = '';
+    apiErrorDiv.textContent = ''; // Clear text
+    apiErrorDiv.style.display = 'none'; // Hide
         riskLevelP.textContent = 'Loading...';
         reasoningP.textContent = 'Loading...';
         maxFineP.textContent = 'Loading...';
@@ -151,6 +161,7 @@
             console.error('Fetch Error:', error);
             localStorage.removeItem('aiRiskLevel'); // Clear if there was an error
             apiErrorDiv.textContent = `Failed to retrieve compliance data: ${error.message}`;
+    apiErrorDiv.style.display = 'block'; // Show error
             riskLevelP.textContent = 'Error';
             reasoningP.textContent = 'Error';
             maxFineP.textContent = 'Error';
@@ -166,14 +177,15 @@
         const riskLevel = document.getElementById('riskLevelValue').textContent;
         const apiErrorDiv = document.getElementById('apiError');
         apiErrorDiv.textContent = ''; // Clear previous errors
+        apiErrorDiv.style.display = 'none'; // Hide
 
         if (riskLevel && riskLevel !== '----------------------' && riskLevel !== 'Not available' && riskLevel !== 'Loading...' && riskLevel !== 'Error') {
             // Risk level seems valid, proceed to the next page
             window.location.href = 'generatemeasures.html';
         } else {
             const userMessage = 'Please perform a successful compliance check first to determine the risk level before generating measures.';
-            // alert(userMessage); // Removed alert
             apiErrorDiv.textContent = userMessage; 
+            apiErrorDiv.style.display = 'block'; // Show error
         }
     }
 

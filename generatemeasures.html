@@ -9,37 +9,35 @@
   /* .lila-bg { background-color: #DE4FF7; } */ /* Removed as Tailwind classes are used directly */
 </style>
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body class="flex flex-col items-center justify-start min-h-screen bg-gradient-to-br from-slate-900 to-slate-700 text-gray-200 font-sans p-4 sm:p-6">
 
-<div class="container mx-auto p-8">
-  <div class="mx-auto bg-white rounded shadow max-w-2xl"> 
-    <div class="px-6 py-4">
-      <div class="mb-4">
-        <h1 class="text-xl font-bold text-gray-900 mb-2">Generate Compliance Measures/Policy</h1>
-        <p id="riskLevelPlaceholder" class="text-gray-700 text-base">
+<div class="bg-slate-800 p-6 sm:p-8 w-full max-w-3xl rounded-xl shadow-2xl space-y-6">
+    <div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 pb-2 text-center">Generate Compliance Measures/Policy</h1>
+        <p id="riskLevelPlaceholder" class="text-center text-gray-300 text-md py-3 px-4 bg-slate-700 bg-opacity-50 rounded-md shadow">
           Loading risk level information...
         </p>
-        <p class="text-gray-700 text-base mt-2">
+        <p class="text-center text-gray-400 text-sm mt-3">
           Please select the desired restrictiveness for your generated AI policy or measures.
         </p>
-      </div>
-      <div class="mb-4">
-        <button id="restrictLow" class="restrict-button bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">Low</button>
-        <button id="restrictMedium" class="restrict-button ml-2 bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">Medium</button> <!-- Default active -->
-        <button id="restrictHigh" class="restrict-button ml-2 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">High</button>
-      </div>
-      <div class="mt-6">
-        <label for="policyOutput" class="block text-sm font-medium text-gray-700">Generated Policy/Measures:</label>
-        <textarea id="policyOutput" rows="10" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-50" readonly>Generated policy will appear here...</textarea>
-      </div>
-      <div id="apiErrorGenerate" class="text-red-500 mt-2"></div> 
     </div>
-    <div class="px-6 py-4 border-t border-gray-200 text-gray-600">
-      <div class="flex justify-end">
-        <button id="generateAndExportPolicy" class="bg-purple-600 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">Generate & Export Policy</button>
-      </div>
+    
+    <div class="flex justify-center space-x-3 py-4">
+        <button id="restrictLow" class="restrict-button py-2 px-6 rounded-lg font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75 bg-slate-600 hover:bg-slate-500 text-gray-300 focus:ring-slate-400" type="button">Low</button>
+        <button id="restrictMedium" class="restrict-button py-2 px-6 rounded-lg font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75" type="button">Medium</button> <!-- JS will set active style -->
+        <button id="restrictHigh" class="restrict-button py-2 px-6 rounded-lg font-medium transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75 bg-slate-600 hover:bg-slate-500 text-gray-300 focus:ring-slate-400" type="button">High</button>
     </div>
-  </div>
+    
+    <div>
+        <label for="policyOutput" class="block text-sm font-medium text-gray-300 mb-1">Generated Policy/Measures:</label>
+        <textarea id="policyOutput" rows="10" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition duration-150 ease-in-out min-h-[200px] sm:min-h-[250px]" readonly>Generated policy will appear here...</textarea>
+    </div>
+    
+    <div id="apiErrorGenerate" class="p-3 bg-red-700 bg-opacity-50 border border-red-700 text-red-300 rounded-md min-h-[2.5em] my-2" style="display: none;"></div> 
+    
+    <div class="pt-6 flex justify-end">
+        <button id="generateAndExportPolicy" class="py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed" type="button">Generate & Export Policy</button>
+    </div>
 </div>
 
 <script>
@@ -57,14 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRiskLevel = localStorage.getItem('aiRiskLevel');
     let selectedRestrictiveness = 'Medium'; // Default restrictiveness
 
+    const activeClasses = ['bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white', 'shadow-md', 'focus:ring-blue-500'];
+    const inactiveClasses = ['bg-slate-600', 'hover:bg-slate-500', 'text-gray-300', 'focus:ring-slate-400'];
+
     function updateRestrictivenessButtonsUI() {
-        for (const level in restrictButtons) {
-            if (level === selectedRestrictiveness.toLowerCase()) {
-                restrictButtons[level].classList.remove('bg-purple-500', 'hover:bg-purple-700');
-                restrictButtons[level].classList.add('bg-purple-700'); // Active style
+        for (const levelKey in restrictButtons) {
+            const button = restrictButtons[levelKey];
+            // Remove all potentially conflicting classes first
+            button.classList.remove(...activeClasses, ...inactiveClasses);
+
+            if (levelKey === selectedRestrictiveness.toLowerCase()) {
+                button.classList.add(...activeClasses);
             } else {
-                restrictButtons[level].classList.remove('bg-purple-700');
-                restrictButtons[level].classList.add('bg-purple-500', 'hover:bg-purple-700');
+                button.classList.add(...inactiveClasses);
             }
         }
     }
@@ -72,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!currentRiskLevel) {
         riskLevelPlaceholder.textContent = 'Error: AI Risk Level not found. Please perform a compliance check first on the previous page.';
+        riskLevelPlaceholder.classList.add('text-red-400'); // Make error more visible
         policyOutputTextarea.textContent = 'Cannot generate policy without a risk level.';
         generateButton.disabled = true;
         Object.values(restrictButtons).forEach(btn => btn.disabled = true);
@@ -83,24 +87,24 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.entries(restrictButtons).forEach(([level, button]) => {
         button.addEventListener('click', () => {
             selectedRestrictiveness = level.charAt(0).toUpperCase() + level.slice(1); // Capitalize first letter
-            console.log("Selected restrictiveness:", selectedRestrictiveness);
             updateRestrictivenessButtonsUI();
         });
     });
 
     generateButton.addEventListener('click', async () => {
+        apiErrorDiv.textContent = ''; // Clear previous errors
+        apiErrorDiv.style.display = 'none'; // Hide error div
+
         if (!currentRiskLevel) {
             apiErrorDiv.textContent = 'Error: AI Risk Level not found. Cannot generate policy. Please go back and perform a compliance check first.';
-            // alert('Error: AI Risk Level not found. Please go back and perform a compliance check.'); // Removed alert
+            apiErrorDiv.style.display = 'block'; // Show error
             return;
         }
 
         generateButton.disabled = true;
         generateButton.textContent = 'Generating...';
         policyOutputTextarea.textContent = 'Generating policy, please wait...';
-        apiErrorDiv.textContent = '';
-
-
+        
         try {
             const response = await fetch('/api/generate_measures_policy.js', {
                 method: 'POST',
@@ -136,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error generating policy:', error);
             policyOutputTextarea.textContent = `Error generating policy: ${error.message}`;
             apiErrorDiv.textContent = `Error generating policy: ${error.message}`;
+            apiErrorDiv.style.display = 'block'; // Show error
         } finally {
             generateButton.disabled = false;
             generateButton.textContent = 'Generate & Export Policy';

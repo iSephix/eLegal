@@ -1,79 +1,61 @@
-const fetch = require('node-fetch');
+const OpenAI = require('openai');
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-// It's likely we'll use the same assistant, but if it's a different one, 
-// this might need to be a different environment variable. For now, assume it's the same.
-const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID; 
+const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 
 // Helper function for consistent error responses
 const sendError = (res, statusCode, error, details = '') => {
-    res.status(statusCode).json({ error, details });
+    // Ensure details are stringified if they are objects
+    const detailString = (typeof details === 'object' && details !== null) ? JSON.stringify(details) : details;
+    res.status(statusCode).json({ error, details: detailString });
 };
 
-// Helper function to make OpenAI API calls
-async function callOpenAI(url, options, apiKey) {
-    const defaultOptions = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'OpenAI-Beta': 'assistants=v1'
-        }
-    };
-    const finalOptions = { ...defaultOptions, ...options, headers: {...defaultOptions.headers, ...options.headers} };
-
-    const response = await fetch(url, finalOptions);
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch (e) {
-            errorData = { message: `Failed to parse error from OpenAI. Status: ${response.status}, StatusText: ${response.statusText}` };
-        }
-        console.error(`OpenAI API Error (${url}): ${response.status}`, errorData);
-        const specificMessage = errorData.error?.message || errorData.message || `OpenAI API request failed with status ${response.status}`;
-        throw new Error(specificMessage);
-    }
-    return response.json();
+// Initialize OpenAI client
+let openai;
+if (process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} else {
+    console.error('OPENAI_API_KEY is not set. The API will not be able to authenticate.');
+    // We'll let the request handler deal with sending the error response
+    // if the key is missing when a request comes in.
 }
 
 // Function to create a new thread
-async function createThread(apiKey) {
-    return callOpenAI('https://api.openai.com/v1/threads', {}, apiKey);
+async function createThread() {
+    return openai.beta.threads.create();
 }
 
 // Function to add a message to a thread
-async function addMessageToThread(threadId, content, apiKey) {
-    return callOpenAI(`https://api.openai.com/v1/threads/${threadId}/messages`, {
-        body: JSON.stringify({
-            role: 'user',
-            content: content
-        })
-    }, apiKey);
+async function addMessageToThread(threadId, content) {
+    return openai.beta.threads.messages.create(threadId, {
+        role: 'user',
+        content: content
+    });
 }
 
 // Function to create a run
-async function createRun(threadId, assistantId, instructions, apiKey) {
-    return callOpenAI(`https://api.openai.com/v1/threads/${threadId}/runs`, {
-        body: JSON.stringify({
-            assistant_id: assistantId,
-            instructions: instructions
-        })
-    }, apiKey);
+async function createRun(threadId, assistantId, instructions) {
+    return openai.beta.threads.runs.create(threadId, {
+        assistant_id: assistantId,
+        instructions: instructions
+    });
 }
 
 // Function to poll for run completion
-async function pollForRunCompletion(threadId, runId, apiKey) {
-    const maxAttempts = 70; 
+async function pollForRunCompletion(threadId, runId) { // apiKey param removed
+    const maxAttempts = 70;
     let attempts = 0;
     let run;
 
     while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
+        await new Promise(resolve => setTimeout(resolve, 1000));
         try {
-            run = await callOpenAI(`https://api.openai.com/v1/threads/${threadId}/runs/${runId}`, { method: 'GET' }, apiKey);
+            // This call will be replaced with openai.beta.threads.runs.retrieve(threadId, runId);
+            run = await openai.beta.threads.runs.retrieve(threadId, runId);
         } catch (error) {
             console.error(`Polling attempt ${attempts + 1} failed for run ${runId}: ${error.message}`);
+            if (error instanceof OpenAI.APIError) { // Handle OpenAI specific errors
+                 // Potentially retryable errors could be handled here, but for now, we just check attempts.
+            }
             if (attempts + 1 >= maxAttempts) {
                  throw new Error(`Failed to get run status for ${runId} after ${maxAttempts} attempts. Last error: ${error.message}`);
             }
@@ -91,17 +73,18 @@ async function pollForRunCompletion(threadId, runId, apiKey) {
     if (!run) {
         throw new Error(`Failed to retrieve run status for ${runId} after ${maxAttempts} attempts. Run object is null.`);
     }
-    if (!['completed'].includes(run.status)) {
+    if (run.status !== 'completed') { // Check only for 'completed'
         console.error('Run (generate_measures_policy) did not complete successfully:', run);
-        throw new Error(`Run (generate_measures_policy) did not complete successfully. Status: ${run.status}, Details: ${JSON.stringify(run.last_error || run.incomplete_details || {})}`);
+        const errorDetails = run.last_error ? `${run.last_error.code}: ${run.last_error.message}` : JSON.stringify(run.incomplete_details || {});
+        throw new Error(`Run (generate_measures_policy) did not complete successfully. Status: ${run.status}, Details: ${errorDetails}`);
     }
     return run;
 }
 
 // Function to retrieve messages from a thread
-async function getThreadMessages(threadId, apiKey) {
+async function getThreadMessages(threadId) { // apiKey param removed
     // Fetch messages in descending order to easily get the latest one
-    return callOpenAI(`https://api.openai.com/v1/threads/${threadId}/messages?order=desc`, { method: 'GET' }, apiKey);
+    return openai.beta.threads.messages.list(threadId, { order: 'desc' });
 }
 
 
@@ -110,13 +93,13 @@ module.exports = async (req, res) => {
         return sendError(res, 405, 'Method Not Allowed', 'Only POST requests are accepted.');
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    const assistantId = process.env.OPENAI_ASSISTANT_ID;
-
-    if (!apiKey) {
-        console.error('OPENAI_API_KEY is not set for generate_measures_policy.');
-        return sendError(res, 500, 'Server Configuration Error', 'OpenAI API Key is missing.');
+    // Check for OpenAI key at the beginning of the request
+    if (!process.env.OPENAI_API_KEY || !openai) {
+        console.error('OPENAI_API_KEY is not set or OpenAI client failed to initialize for generate_measures_policy.');
+        return sendError(res, 500, 'Server Configuration Error', 'OpenAI API Key is missing or client not initialized.');
     }
+    
+    const assistantId = process.env.OPENAI_ASSISTANT_ID; // assistantId is already defined from module scope
     if (!assistantId) {
         console.error('OPENAI_ASSISTANT_ID is not set for generate_measures_policy.');
         return sendError(res, 500, 'Server Configuration Error', 'OpenAI Assistant ID is missing.');
@@ -148,29 +131,31 @@ module.exports = async (req, res) => {
 
     try {
         console.log("Creating thread for policy generation...");
-        const thread = await createThread(apiKey);
+        const thread = await createThread(); // apiKey removed
         const threadId = thread.id;
         console.log(`Thread created for policy generation: ${threadId}`);
 
         console.log("Adding policy generation message to thread...");
-        await addMessageToThread(threadId, promptContent, apiKey);
+        await addMessageToThread(threadId, promptContent); // apiKey removed
         console.log("Policy generation message added.");
 
         console.log("Creating policy generation run...");
-        const run = await createRun(threadId, assistantId, `Generate compliance measures/policy for ${riskLevel} risk with ${restrictiveness} restrictiveness.`, apiKey);
+        // apiKey removed
+        const run = await createRun(threadId, assistantId, `Generate compliance measures/policy for ${riskLevel} risk with ${restrictiveness} restrictiveness.`);
         const runId = run.id;
         console.log(`Policy generation run created: ${runId}`);
 
         console.log("Polling for policy generation run completion...");
-        await pollForRunCompletion(threadId, runId, apiKey);
+        await pollForRunCompletion(threadId, runId); // apiKey removed
         console.log("Policy generation run completed.");
 
         console.log("Retrieving messages for policy generation...");
-        const messagesData = await getThreadMessages(threadId, apiKey);
+        const messagesPage = await getThreadMessages(threadId); // apiKey removed, variable name changed
         
         let assistantMessageContent = "No response from assistant regarding policy generation.";
-        if (messagesData.data && messagesData.data.length > 0) {
-            const assistantMessages = messagesData.data.filter(msg => msg.role === 'assistant');
+        // The new library returns a Page object, data is in page.data
+        if (messagesPage.data && messagesPage.data.length > 0) {
+            const assistantMessages = messagesPage.data.filter(msg => msg.role === 'assistant');
             if (assistantMessages.length > 0 && assistantMessages[0].content && assistantMessages[0].content.length > 0 && assistantMessages[0].content[0].type === 'text') {
                 assistantMessageContent = assistantMessages[0].content[0].text.value;
             }
@@ -181,12 +166,15 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error('Error in policy generation process:', error.message, error.stack);
-        if (error.message.toLowerCase().includes("openai") || error.message.includes("api request failed")) {
-            return sendError(res, 503, 'OpenAI Service Error', error.message);
+        // Check for name and status property for more robust error type identification
+        if (error.name === 'APIError' && typeof error.status === 'number') {
+            return sendError(res, error.status, `OpenAI API Error: ${error.name}`, error.message);
         }
         if (error.message.includes("Run (generate_measures_policy) did not complete successfully")) {
+            // This custom error can be made more specific if needed
             return sendError(res, 504, 'AI Processing Timeout/Error', error.message);
         }
+        // General internal server error for other cases
         return sendError(res, 500, 'Internal Server Error', error.message);
     }
 };
