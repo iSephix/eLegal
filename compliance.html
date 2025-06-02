@@ -19,24 +19,25 @@
     <div id="complianceResult" class="mt-4">
         <div class="mb-2">
             <label class="text-gray-700">Risk level:</label>
-            <p class="border-b-2 border-gray-300">----------------------</p>
+            <p id="riskLevelValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
         </div>
         <div class="mb-2">
             <label class="text-gray-700">Reasoning:</label>
-            <p class="border-b-2 border-gray-300 overflow-y-scroll h-12">----------------------</p>
+            <p id="reasoningValue" class="border-b-2 border-gray-300 overflow-y-scroll h-24 min-h-[1.5em]">----------------------</p>
         </div>
         <div class="mb-2">
             <label class="text-gray-700">Maximum fine:</label>
-            <p class="border-b-2 border-gray-300">----------------------</p>
+            <p id="maxFineValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
         </div>
         <div class="mb-2">
             <label class="text-gray-700">Max. fine based on annual revenue:</label>
-            <p class="border-b-2 border-gray-300">----------------------</p>
+            <p id="maxFineRevenueValue" class="border-b-2 border-gray-300 min-h-[1.5em]">----------------------</p>
         </div>
         <div class="mb-2">
             <label class="text-gray-700">Measures:</label>
-            <p class="border-b-2 border-gray-300">----------------------</p>
+            <p id="measuresValue" class="border-b-2 border-gray-300 overflow-y-scroll h-32 min-h-[1.5em]">----------------------</p>
         </div>
+        <div id="apiError" class="text-red-500 mt-2"></div> <!-- For displaying API errors -->
     </div>
     <div class="flex justify-end mt-4">
         <button id="generateMeasures" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
@@ -67,65 +68,114 @@
     preloadData();
 
 
-    document.getElementById('checkCompliance').addEventListener('click', () => {
-        fetchRiskClassificationAndMeasures();
-    });
+    document.getElementById('checkCompliance').addEventListener('click', fetchRiskClassificationAndMeasures);
+    
+    document.getElementById('generateMeasures').addEventListener('click', generateMeasures);
 
-    document.getElementById('generateMeasures').addEventListener('click', () => {
-        generateMeasures();
-    });
 
-    function fetchRiskClassificationAndMeasures() {
-        // Implement the API call to the server to retrieve risk classification and measures
-        // Example: fetch('/api/risk-classification') with appropriate data and headers
-        // Process the response and update the DOM accordingly
-        fetch('/api/risk-classification', {
-        method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // Include other headers as required by your setup
-            },
-            body: JSON.stringify({
-                // Include the necessary data for the API call
-                company: 'Company Name',
-                industry: 'Industry Name',
-                useOfAI: 'Specific Use of AI'
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('riskLevel').textContent = data.riskLevel;
-            document.getElementById('reasoning').textContent = data.reasoning;
-            document.getElementById('maxFine').textContent = data.maxFine;
-            document.getElementById('maxFineRevenue').textContent = data.maxFineRevenue;
-            document.getElementById('measures').textContent = data.measures;
-        })
-        .catch(error => console.error('Error:', error));
+    async function fetchRiskClassificationAndMeasures() {
+        const checkButton = document.getElementById('checkCompliance');
+        const apiErrorDiv = document.getElementById('apiError');
+        const riskLevelP = document.getElementById('riskLevelValue');
+        const reasoningP = document.getElementById('reasoningValue');
+        const maxFineP = document.getElementById('maxFineValue');
+        const maxFineRevenueP = document.getElementById('maxFineRevenueValue');
+        const measuresP = document.getElementById('measuresValue');
+
+        // Clear previous results and errors
+        apiErrorDiv.textContent = '';
+        riskLevelP.textContent = 'Loading...';
+        reasoningP.textContent = 'Loading...';
+        maxFineP.textContent = 'Loading...';
+        maxFineRevenueP.textContent = 'Loading...';
+        measuresP.textContent = 'Loading...';
+
+        checkButton.disabled = true;
+        checkButton.textContent = 'Checking...';
+
+        const companyDataString = localStorage.getItem('CompanyBasedata');
+        if (!companyDataString) {
+            apiErrorDiv.textContent = 'Error: Company base data not found in local storage.';
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check my Compliance';
+            riskLevelP.textContent = 'Error loading data.';
+            return;
         }
+
+        const companyData = JSON.parse(companyDataString);
+
+        if (!companyData.company || !companyData.industry || !companyData.revenue || !companyData.useOfAi) {
+            apiErrorDiv.textContent = 'Error: Missing some company data fields in local storage.';
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check my Compliance';
+            riskLevelP.textContent = 'Error loading data.';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/risk_classification.js', { // Ensure .js is kept if needed, or remove if server handles it
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    company: companyData.company,
+                    industry: companyData.industry,
+                    revenue: String(companyData.revenue), // API expects a string or number
+                    useOfAi: companyData.useOfAi
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('API Error Response:', data);
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+            }
+            
+            // Save risk level to localStorage before updating text content
+            if (data.riskLevel) {
+                localStorage.setItem('aiRiskLevel', data.riskLevel);
+            } else {
+                // If no risk level, maybe clear it or set a default? For now, just don't set.
+                localStorage.removeItem('aiRiskLevel'); // Or localStorage.setItem('aiRiskLevel', 'Not available');
+            }
+
+            riskLevelP.textContent = data.riskLevel || 'Not available';
+            reasoningP.textContent = data.reasoning || 'Not available';
+            maxFineP.textContent = data.maxFine || 'Not available';
+            maxFineRevenueP.textContent = data.maxFineRevenue || ''; // Can be empty if not applicable
+            measuresP.textContent = data.measures || 'Not available';
+
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            localStorage.removeItem('aiRiskLevel'); // Clear if there was an error
+            apiErrorDiv.textContent = `Failed to retrieve compliance data: ${error.message}`;
+            riskLevelP.textContent = 'Error';
+            reasoningP.textContent = 'Error';
+            maxFineP.textContent = 'Error';
+            maxFineRevenueP.textContent = 'Error';
+            measuresP.textContent = 'Error';
+        } finally {
+            checkButton.disabled = false;
+            checkButton.textContent = 'Check my Compliance';
+        }
+    }
     
     function generateMeasures() {
-    // Implement the API call to generate measures based on risk classification
-    // Example: fetch('/api/generate-measures') with appropriate data and headers
-    // Process the response and update the DOM accordingly
-    fetch('/api/generate-measures', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            // Include other headers as required by your setup
-        },
-        body: JSON.stringify({
-            // Include the necessary data for the API call
-            riskLevel: document.getElementById('riskLevel').textContent
-            // You may include other data as needed
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Update DOM with the generated measures
-        document.getElementById('measures').textContent = data.generatedMeasures;
-    })
-    .catch(error => console.error('Error:', error));
-}
+        const riskLevel = document.getElementById('riskLevelValue').textContent;
+        const apiErrorDiv = document.getElementById('apiError');
+        apiErrorDiv.textContent = ''; // Clear previous errors
+
+        if (riskLevel && riskLevel !== '----------------------' && riskLevel !== 'Not available' && riskLevel !== 'Loading...' && riskLevel !== 'Error') {
+            // Risk level seems valid, proceed to the next page
+            window.location.href = 'generatemeasures.html';
+        } else {
+            const userMessage = 'Please perform a successful compliance check first to determine the risk level before generating measures.';
+            // alert(userMessage); // Removed alert
+            apiErrorDiv.textContent = userMessage; 
+        }
+    }
 
 
 </script>
